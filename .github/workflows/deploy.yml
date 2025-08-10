@@ -3,11 +3,13 @@ name: CI/CD Pipeline - DevOps Capstone
 on:
   push:
     branches:
-      - main  # Run this workflow only when pushing to main branch
+      - main
 
 env:
   IMAGE_NAME: jaydaniel10/student-tracker
   CONTAINER_NAME: student-tracker
+  VAULT_ADDR: http://44.204.193.107:8200   # Replace with your Vault address
+  VAULT_SECRET_PATH: secret/data/student-tracker  # KV path in Vault
 
 jobs:
   build-and-deploy:
@@ -29,31 +31,66 @@ jobs:
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME:latest .
 
-      # 4. Push image to Docker Hub
+      # 4. Push Docker image to Docker Hub
       - name: Push Docker image
         run: docker push $IMAGE_NAME:latest
 
-      # 5. Deploy to EC2
-      - name: Deploy to EC2 instances
+      # 5. Deploy to EC2 (Instance 1)
+      - name: Deploy to EC2 instance 1
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST_1 }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Install Vault CLI if not already present
+            if ! command -v vault &> /dev/null; then
+              curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+              echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+              sudo apt update && sudo apt install -y vault
+            fi
+
+            # Login to Vault (using token from GitHub Secrets)
+            export VAULT_ADDR=${{ env.VAULT_ADDR }}
+            vault login ${{ secrets.VAULT_TOKEN }}
+
+            # Retrieve secrets from Vault and export them as env vars
+            export DB_USER=$(vault kv get -field=db_user ${{ env.VAULT_SECRET_PATH }})
+            export DB_PASS=$(vault kv get -field=db_pass ${{ env.VAULT_SECRET_PATH }})
+
+            # Deploy updated container with env vars
             sudo docker pull $IMAGE_NAME:latest
             sudo docker stop $CONTAINER_NAME || true
             sudo docker rm $CONTAINER_NAME || true
-            sudo docker run -d --name $CONTAINER_NAME -p 8000:8000 $IMAGE_NAME:latest
+            sudo docker run -d --name $CONTAINER_NAME -p 8000:8000 \
+              -e DB_USER=$DB_USER \
+              -e DB_PASS=$DB_PASS \
+              $IMAGE_NAME:latest
 
-      - name: Deploy to second EC2 instance
+      # 6. Deploy to EC2 (Instance 2)
+      - name: Deploy to EC2 instance 2
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.EC2_HOST_2 }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            if ! command -v vault &> /dev/null; then
+              curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+              echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+              sudo apt update && sudo apt install -y vault
+            fi
+
+            export VAULT_ADDR=${{ env.VAULT_ADDR }}
+            vault login ${{ secrets.VAULT_TOKEN }}
+
+            export DB_USER=$(vault kv get -field=db_user ${{ env.VAULT_SECRET_PATH }})
+            export DB_PASS=$(vault kv get -field=db_pass ${{ env.VAULT_SECRET_PATH }})
+
             sudo docker pull $IMAGE_NAME:latest
             sudo docker stop $CONTAINER_NAME || true
             sudo docker rm $CONTAINER_NAME || true
-            sudo docker run -d --name $CONTAINER_NAME -p 8000:8000 $IMAGE_NAME:latest
+            sudo docker run -d --name $CONTAINER_NAME -p 8000:8000 \
+              -e DB_USER=$DB_USER \
+              -e DB_PASS=$DB_PASS \
+              $IMAGE_NAME:latest
