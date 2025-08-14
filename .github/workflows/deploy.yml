@@ -23,11 +23,11 @@ jobs:
 
       # Step 3: Build Docker image
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest .
+        run: sudo docker build -t ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest .
 
       # Step 4: Push Docker image to Docker Hub
       - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+        run: sudo docker push ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
 
       # Step 5: Deploy to EC2 instance 1
       - name: Deploy to EC2 Instance 1
@@ -37,10 +37,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
-            docker stop student-tracker || true
-            docker rm student-tracker || true
-            docker run -d --name student-tracker -p 80:80 \
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+            sudo docker stop student-tracker || true
+            sudo docker rm student-tracker || true
+            sudo docker run -d --name student-tracker -p 80:80 \
               -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
               -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
               -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
@@ -54,10 +54,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
-            docker stop student-tracker || true
-            docker rm student-tracker || true
-            docker run -d --name student-tracker -p 80:80 \
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+            sudo docker stop student-tracker || true
+            sudo docker rm student-tracker || true
+            sudo docker run -d --name student-tracker -p 80:80 \
               -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
               -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
               -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
