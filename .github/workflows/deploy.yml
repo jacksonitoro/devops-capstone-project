@@ -19,14 +19,14 @@ jobs:
 
       # Step 2: Log in to Docker Hub
       - name: Docker Hub Login
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
+          username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       # Step 3: Build Docker image
       - name: Build Docker image
-        run: sudo docker build -t ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest .
+        run: sudo docker build -t $IMAGE_NAME:latest .
 
       # Step 4: Push Docker image to Docker Hub
       - name: Push Docker image
