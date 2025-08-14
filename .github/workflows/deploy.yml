@@ -6,7 +6,7 @@ on:
     branches:
       - main
 env:
-  IMAGE_NAME: jaydaniel10/student-tracker
+  IMAGE_NAME: jaydaniel10/work-tracker
   
 jobs:
   build-and-deploy:
@@ -41,14 +41,14 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
-            sudo docker stop student-tracker || true
-            sudo docker rm student-tracker || true
-            sudo docker run -d --name student-tracker -p 80:80 \
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/work-tracker:latest
+            sudo docker stop work-tracker || true
+            sudo docker rm work-tracker || true
+            sudo docker run -d --name work-tracker -p 80:80 \
               -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
               -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
               -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
-              ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+              ${{ secrets.DOCKER_USERNAME }}/work-tracker:latest
 
       # Step 6: Deploy to EC2 instance 2
       - name: Deploy to EC2 Instance 2
@@ -58,11 +58,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
-            sudo docker stop student-tracker || true
-            sudo docker rm student-tracker || true
-            sudo docker run -d --name student-tracker -p 80:80 \
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/work-tracker:latest
+            sudo docker stop work-tracker || true
+            sudo docker rm work-tracker || true
+            sudo docker run -d --name work-tracker -p 80:80 \
               -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
               -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
               -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
-              ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+              ${{ secrets.DOCKER_USERNAME }}/work-tracker:latest
