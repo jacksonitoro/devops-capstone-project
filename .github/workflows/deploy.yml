@@ -27,7 +27,7 @@ jobs:
 
       # Step 4: Push Docker image to Docker Hub
       - name: Push Docker image
-        run: sudo docker push ${{ secrets.DOCKER_USERNAME }}/student-tracker:latest
+        run: sudo docker push jaydaniel10/student-tracker:latest
 
       # Step 5: Deploy to EC2 instance 1
       - name: Deploy to EC2 Instance 1
