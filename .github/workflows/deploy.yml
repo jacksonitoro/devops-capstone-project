@@ -1,6 +1,7 @@
 name: Deploy Python App to EC2 via Docker
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
