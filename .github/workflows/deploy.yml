@@ -26,3 +26,36 @@ jobs:
     
     - name: Push image to Docker Hub
       run: docker push $IMAGE_NAME:latest
+
+    - name: Deploy to EC2 Instance 1
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+          host: ${{ secrets.EC2_HOST_1 }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ env.IMAGE_NAME }}:latest
+            docker stop student-tracker || true
+            docker rm student-tracker || true
+            docker run -d --name student-tracker -p 80:80 \
+              -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
+              -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
+              -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
+              ${{ env.IMAGE_NAME }}:latest
+
+    - name: Deploy to EC2 Instance 2
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+          host: ${{ secrets.EC2_HOST_2 }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ env.IMAGE_NAME }}:latest
+            docker stop student-tracker || true
+            docker rm student-tracker || true
+            docker run -d --name student-tracker -p 80:80 \
+              -e VAULT_ADDR=${{ secrets.VAULT_ADDR }} \
+              -e VAULT_ROLE_ID=${{ secrets.VAULT_ROLE_ID }} \
+              -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
+              ${{ env.IMAGE_NAME }}:latest
+  
