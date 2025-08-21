@@ -11,6 +11,10 @@ async def home(request: Request):
     total = await count_students()
     return templates.TemplateResponse("index.html", {"request": request, "total": total})
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 @app.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
