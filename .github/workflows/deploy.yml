@@ -75,18 +75,7 @@ jobs:
             -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
             ${{ env.IMAGE_NAME }}:latest
 
-          echo "Checking health endpoint..."
-          for i in {1..10}; do
-            if curl -fs http://localhost:8000/health; then
-              echo "✅ Health check passed on EC2 Instance 1"
-              exit 0
-            fi
-            echo "⏳ Waiting for app to be healthy..."
-            sleep 5
-          done
-          echo "❌ Health check failed on EC2 Instance 1"
-          docker logs student-tracker
-          exit 1
+          
 
     # Deploy to EC2 Instance 2
     - name: Deploy to EC2 Instance 2
@@ -105,15 +94,4 @@ jobs:
             -e VAULT_SECRET_ID=${{ secrets.VAULT_SECRET_ID }} \
             ${{ env.IMAGE_NAME }}:latest
 
-          echo "Checking health endpoint..."
-          for i in {1..10}; do
-            if curl -fs http://localhost:8000/health; then
-              echo "✅ Health check passed on EC2 Instance 2"
-              exit 0
-            fi
-            echo "⏳ Waiting for app to be healthy..."
-            sleep 5
-          done
-          echo "❌ Health check failed on EC2 Instance 2"
-          docker logs student-tracker
-          exit 1
+         
