@@ -95,12 +95,26 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
 
         # Trigger Render deploy
-    - name: Trigger Render Deployment
+        # Trigger Render Deployment (auto fetch service ID)
+    - name: Deploy to Render
       run: |
-        curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
-        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-        -H "Accept: application/json" \
-        -H "Content-Type: application/json"
+        echo "Fetching Render service ID..."
+        SERVICE_ID=$(curl -s -X GET "https://api.render.com/v1/services" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Accept: application/json" | \
+          jq -r '.[] | select(.service.name=="${{ secrets.RENDER_SERVICE_NAME }}") | .id')
+
+        if [ -z "$SERVICE_ID" ]; then
+          echo "❌ Render service '${{ secrets.RENDER_SERVICE_NAME }}' not found"
+          exit 1
+        fi
+
+        echo "Deploying to Render service ID: $SERVICE_ID"
+        curl -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+          -H "Accept: application/json" \
+          -H "Content-Type: application/json"
+
 
 
          
