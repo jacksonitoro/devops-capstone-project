@@ -113,13 +113,15 @@ jobs:
       - name: Deploy to Render
         run: |
           echo "Fetching Render service ID..."
+          SERVICE_NAME="${{ secrets.RENDER_SERVICE_NAME }}"
           SERVICE_ID=$(curl -s -X GET "https://api.render.com/v1/services" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" | \
-            jq -r '.[] | select(.service.name=="'"${{ secrets.RENDER_SERVICE_NAME }}"'") | .id')
+            jq -r '.[] | select((.service.name==$ENV_SERVICE_NAME) or (.name==$ENV_SERVICE_NAME)) | .id' \
+            --arg ENV_SERVICE_NAME "$SERVICE_NAME")
 
           if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" == "null" ]; then
-            echo "❌ Render service '${{ secrets.RENDER_SERVICE_NAME }}' not found"
+            echo "❌ Render service '$SERVICE_NAME' not found"
             exit 1
           fi
 
@@ -128,3 +130,4 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json" \
             -H "Content-Type: application/json"
+
